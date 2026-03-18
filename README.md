@@ -1,35 +1,95 @@
 # RiskSense
 
-RiskSense is a production-style credit risk assessment project focused on adding practical MLOps tooling around a familiar machine learning workflow. The core use case remains the same: predict borrower default risk, compare Logistic Regression and XGBoost, explain decisions with SHAP, and track experiments with MLflow.
+RiskSense is an end-to-end credit risk assessment project that predicts borrower default risk using machine learning and wraps the modeling workflow in practical MLOps tooling. The project compares a strong interpretable baseline, Logistic Regression, against XGBoost, while adding experiment tracking, reproducible pipelines, and production-style project structure.
 
-## What Changed
+## Overview
 
-The project is no longer notebook-only. The training flow has been moved into a reusable Python package with configuration-driven runs, testable modules, CI checks, and cleaner artifact management.
+This project started as a notebook-based credit risk system and has now been refactored into a modular Python codebase with:
 
-Key MLOps concepts now built into the repo:
+- reusable training and prediction pipelines
+- MLflow experiment tracking
+- DVC pipeline orchestration and experiment parameters
+- config-driven runs with YAML
+- automated linting, testing, and CI
+- SHAP-based explainability for tree models
 
-- Config-driven training with YAML
-- Reusable `src/` package instead of notebook-only logic
-- MLflow experiment tracking and model artifact logging
-- DVC pipeline orchestration and parameter tracking
-- Train/predict CLI scripts for reproducible runs
-- Basic data validation before training
-- Saved reports and model artifacts in standard folders
-- Pytest, Ruff, pre-commit, and GitHub Actions CI
-- Notebook folder reserved for exploration while production logic lives in code
+The goal is not only to build a credit default model, but also to demonstrate how a machine learning project can be structured in a more production-like and academically credible way.
+
+## Core Features
+
+- Credit risk prediction using machine learning
+- Model comparison between Logistic Regression and XGBoost
+- Feature engineering inspired by lending and borrower risk metrics
+- Explainability with SHAP
+- Experiment tracking with MLflow
+- Reproducible pipeline execution with DVC
+- Automated quality checks using Ruff, Pytest, and GitHub Actions
+
+## Models Used
+
+### Logistic Regression
+
+- baseline model for interpretability
+- useful for understanding linear relationships and feature directionality
+
+### XGBoost
+
+- captures non-linear interactions
+- generally stronger on complex credit-risk patterns
+- used with SHAP for feature-level explanations
+
+## Engineered Features
+
+The project expands the raw credit fields into more meaningful risk indicators such as:
+
+- payment-to-income ratio
+- loan-to-income ratio
+- credit utilization tiers
+- loan term buckets
+- credit score bands
+- parsed employment length
+
+These engineered features help the models better reflect borrower financial stress and credit behavior.
+
+## MLOps Tools In This Project
+
+### MLflow
+
+Used for:
+
+- experiment tracking
+- model logging
+- metrics logging
+- artifact management
+
+### DVC
+
+Used for:
+
+- reproducible training pipelines
+- parameter tracking with `params.yaml`
+- stage definition through `dvc.yaml`
+- experiment comparison with `dvc exp run`
+
+### Supporting Engineering Tooling
+
+- `pytest` for tests
+- `ruff` for linting
+- `pre-commit` for local code quality hooks
+- GitHub Actions for CI
+- Docker for packaging the training environment
 
 ## Project Structure
 
 ```text
 RiskSense/
+├── .dvc/
+├── .github/workflows/
 ├── configs/
 │   └── base.yaml
 ├── data/
 │   ├── raw/
 │   └── processed/
-├── .dvc/
-├── dvc.yaml
-├── params.yaml
 ├── notebooks/
 ├── scripts/
 │   ├── predict.py
@@ -43,35 +103,18 @@ RiskSense/
 │       ├── features.py
 │       ├── models.py
 │       ├── pipeline.py
+│       ├── predict.py
 │       └── tracking.py
 ├── tests/
-├── .github/workflows/ci.yml
-├── Makefile
+├── dvc.yaml
+├── params.yaml
 ├── pyproject.toml
 └── credit_risk_system.ipynb
 ```
 
-## Modeling Scope
-
-The current production pipeline keeps the original project intent and slightly improves feature engineering.
-
-Models:
-
-- Logistic Regression for interpretable baseline performance
-- XGBoost for stronger non-linear predictive power
-
-Engineered features:
-
-- Payment-to-income ratio
-- Loan amount to income ratio
-- Credit utilization tier
-- Loan term bucket
-- Credit score band
-- Parsed employment length
-
 ## Setup
 
-Create a virtual environment on CachyOS or any other Linux distro:
+Create and activate a virtual environment:
 
 ```bash
 python -m venv .venv
@@ -80,67 +123,67 @@ pip install --upgrade pip
 pip install -e ".[dev]"
 ```
 
-Place your dataset at:
+Place the raw dataset at:
 
 ```text
 data/raw/accepted_2007_to_2018Q4.csv.gz
 ```
 
-If your file lives elsewhere, update [`configs/base.yaml`](/home/razerfang/Code/RiskSense/configs/base.yaml).
+If your dataset lives elsewhere, update [`configs/base.yaml`](/home/razerfang/Code/RiskSense/configs/base.yaml).
 
-## Run Training
+## Train The Pipeline
+
+Run the training script directly:
 
 ```bash
 python scripts/train.py --config configs/base.yaml --params params.yaml
 ```
 
-Or with `make`:
+Or use the Make target:
 
 ```bash
 make train
 ```
 
-Artifacts produced by training:
+### Training Outputs
 
-- best model in `models/`
-- metrics JSON in `reports/`
-- summary metrics JSON in `reports/`
-- model comparison CSV in `reports/`
-- sample predictions CSV in `reports/`
+Successful training produces:
+
+- `models/best_model.joblib`
+- `reports/metrics.json`
+- `reports/summary_metrics.json`
+- `reports/model_comparison.csv`
+- `reports/sample_predictions.csv`
 - confusion matrix plots in `reports/`
 - SHAP summary plot for XGBoost in `reports/`
 - MLflow metadata in `mlflow.db`
 
+If `models/` is empty, training has not completed yet. The most common reason is that the dataset is not present at the configured path.
+
 ## Run Batch Prediction
 
 ```bash
-python scripts/predict.py --model-path models/best_model.joblib --input-csv data/processed/inference_input.csv --output-csv reports/predictions.csv
+python scripts/predict.py \
+  --model-path models/best_model.joblib \
+  --input-csv data/processed/inference_input.csv \
+  --output-csv reports/predictions.csv
 ```
 
-## MLflow
+## MLflow Usage
 
-Launch the experiment UI locally:
+Start the MLflow UI locally:
 
 ```bash
 mlflow ui --backend-store-uri sqlite:///mlflow.db
 ```
 
-Then open `http://127.0.0.1:5000`.
+Then open:
 
-## DVC
+```text
+http://127.0.0.1:5000
+```
 
-This project now includes a real DVC pipeline stage for training. DVC is used here for:
-
-- pipeline reproducibility
-- parameter tracking
-- experiment comparison with `dvc exp`
-- metrics tracking through `reports/summary_metrics.json`
-
-Key files:
-
-- [`dvc.yaml`](/home/razerfang/Code/RiskSense/dvc.yaml)
-- [`params.yaml`](/home/razerfang/Code/RiskSense/params.yaml)
-- [`configs/base.yaml`](/home/razerfang/Code/RiskSense/configs/base.yaml)
+## DVC Usage
 
 Run the DVC pipeline:
 
@@ -166,13 +209,13 @@ Example experiment override:
 dvc exp run -S data.sample_frac=0.1 -S explainability.sample_size=50
 ```
 
-Important:
+Important notes:
 
-- put your dataset at `data/raw/accepted_2007_to_2018Q4.csv.gz`
-- DVC stage execution uses `params.yaml` as the experiment override layer and merges it into [`configs/base.yaml`](/home/razerfang/Code/RiskSense/configs/base.yaml)
-- once the raw dataset is present, you can additionally run `dvc add data/raw/accepted_2007_to_2018Q4.csv.gz` if you want full data versioning through the DVC cache
+- `params.yaml` acts as the experiment override layer
+- the training script merges `params.yaml` into [`configs/base.yaml`](/home/razerfang/Code/RiskSense/configs/base.yaml)
+- once the raw dataset is available, you can run `dvc add data/raw/accepted_2007_to_2018Q4.csv.gz` if you want full data versioning through the DVC cache
 
-## Quality Tooling
+## Development Commands
 
 Lint:
 
@@ -198,18 +241,36 @@ Install git hooks:
 pre-commit install
 ```
 
-## Legacy Notebook
+## Notebook
 
-[`credit_risk_system.ipynb`](/home/razerfang/Code/RiskSense/credit_risk_system.ipynb) is kept as the original exploratory notebook. The production path is now:
+[`credit_risk_system.ipynb`](/home/razerfang/Code/RiskSense/credit_risk_system.ipynb) is kept as the original exploratory notebook. The main production path now lives in:
 
 - [`scripts/train.py`](/home/razerfang/Code/RiskSense/scripts/train.py)
 - [`scripts/predict.py`](/home/razerfang/Code/RiskSense/scripts/predict.py)
 - [`src/risksense/pipeline.py`](/home/razerfang/Code/RiskSense/src/risksense/pipeline.py)
 
-## Next MLOps Upgrades
+## Academic Value
 
-- Add data validation with Great Expectations
-- Add a model serving API with FastAPI
-- Add model registry promotion rules in MLflow
-- Add drift and data quality monitoring
-- Add Docker-based deployment and scheduled retraining
+This project is especially suitable for academic presentation because it demonstrates:
+
+- predictive modeling for a finance use case
+- interpretable and non-linear model comparison
+- feature engineering aligned with domain intuition
+- explainability through SHAP
+- experiment tracking through MLflow
+- reproducibility and experimentation through DVC
+- software engineering practices such as testing, CI, and modular design
+
+## Future Improvements
+
+- add data validation with Great Expectations
+- add drift monitoring with Evidently
+- add a FastAPI inference service
+- add model registry promotion workflows
+- add DVC remote storage for shared artifact/data versioning
+
+## Author
+
+**Prajwal JB**  
+B.E. Artificial Intelligence & Data Science  
+BMS College of Engineering, Bengaluru
