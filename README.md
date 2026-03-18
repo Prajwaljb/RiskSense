@@ -269,8 +269,12 @@ This project is especially suitable for academic presentation because it demonst
 - add model registry promotion workflows
 - add DVC remote storage for shared artifact/data versioning
 
-## Author
+## Authors
 
 **Prajwal JB**  
+B.E. Artificial Intelligence & Data Science  
+BMS College of Engineering, Bengaluru
+
+**Aashita Narayanpur**  
 B.E. Artificial Intelligence & Data Science  
 BMS College of Engineering, Bengaluru
