@@ -1,146 +1,215 @@
 # RiskSense
 
-RiskSense is an end-to-end **credit risk assessment system** that leverages machine learning to predict borrower default risk, explain model decisions, and track experiments using MLOps best practices. The project compares traditional statistical models with advanced tree-based models and focuses on **interpretability, reproducibility, and real-world financial features**.
+RiskSense is a production-style credit risk assessment project focused on adding practical MLOps tooling around a familiar machine learning workflow. The core use case remains the same: predict borrower default risk, compare Logistic Regression and XGBoost, explain decisions with SHAP, and track experiments with MLflow.
 
----
+## What Changed
 
-## 🚀 Features
+The project is no longer notebook-only. The training flow has been moved into a reusable Python package with configuration-driven runs, testable modules, CI checks, and cleaner artifact management.
 
-* 📊 **Credit Risk Prediction** using Machine Learning
-* ⚖️ **Model Comparison**: Logistic Regression vs XGBoost
-* 🔍 **Explainable AI** with SHAP for feature-level insights
-* 🧪 **Hyperparameter Optimization** using GridSearchCV
-* 📈 **Experiment Tracking & Versioning** with MLflow
-* 🛠️ **Feature Engineering** inspired by real-world lending metrics
+Key MLOps concepts now built into the repo:
 
----
+- Config-driven training with YAML
+- Reusable `src/` package instead of notebook-only logic
+- MLflow experiment tracking and model artifact logging
+- DVC pipeline orchestration and parameter tracking
+- Train/predict CLI scripts for reproducible runs
+- Basic data validation before training
+- Saved reports and model artifacts in standard folders
+- Pytest, Ruff, pre-commit, and GitHub Actions CI
+- Notebook folder reserved for exploration while production logic lives in code
 
-## 🧠 Models Used
+## Project Structure
 
-* **Logistic Regression**
-
-  * Baseline interpretable model
-  * Useful for understanding linear relationships
-
-* **XGBoost Classifier**
-
-  * Handles non-linear interactions
-  * Provides superior performance on complex credit data
-
-Models are evaluated and compared based on standard classification metrics.
-
----
-
-## 🧩 Feature Engineering
-
-Key engineered features include:
-
-* **Payment-to-Income Ratio**
-* **Credit Utilization Tiers**
-* **Loan Amount vs Income**
-* **Loan Term Buckets**
-* **Credit Score Bands**
-
-These features help capture borrower behavior and financial stress more effectively than raw variables.
-
----
-
-## 📊 Explainability with SHAP
-
-SHAP (SHapley Additive exPlanations) is used to:
-
-* Explain individual predictions
-* Identify global feature importance
-* Highlight major risk drivers such as:
-
-  * Credit score
-  * Loan term
-  * Utilization ratio
-
-This makes RiskSense suitable for **regulated domains like finance**, where transparency is critical.
-
----
-
-## 🔁 MLOps with MLflow
-
-RiskSense integrates **MLflow** for:
-
-* Experiment tracking
-* Logging model parameters and metrics
-* Comparing multiple runs
-* Model versioning
-
-This ensures reproducibility and clean experimentation workflows.
-
----
-
-## 🧪 Hyperparameter Tuning
-
-* Implemented using **GridSearchCV**
-* Ensures optimal parameter selection
-* Prevents overfitting and improves generalization
-
----
-
-## 🛠️ Tech Stack
-
-* **Programming Language**: Python
-* **Machine Learning**: Scikit-learn, XGBoost
-* **Explainability**: SHAP
-* **MLOps**: MLflow
-* **Model Selection**: GridSearchCV
-* **Data Handling**: Pandas, NumPy
-* **Visualization**: Matplotlib, Seaborn
-
----
-
-## 📂 Project Structure (Typical)
-
-```
+```text
 RiskSense/
-│── data/
-│── notebooks/
-│   └── credit_risk_system.ipynb
-│── models/
-│── mlruns/
-│── README.md
+├── configs/
+│   └── base.yaml
+├── data/
+│   ├── raw/
+│   └── processed/
+├── .dvc/
+├── dvc.yaml
+├── params.yaml
+├── notebooks/
+├── scripts/
+│   ├── predict.py
+│   └── train.py
+├── src/
+│   └── risksense/
+│       ├── config.py
+│       ├── data.py
+│       ├── evaluation.py
+│       ├── explainability.py
+│       ├── features.py
+│       ├── models.py
+│       ├── pipeline.py
+│       └── tracking.py
+├── tests/
+├── .github/workflows/ci.yml
+├── Makefile
+├── pyproject.toml
+└── credit_risk_system.ipynb
 ```
 
----
+## Modeling Scope
 
-## 📈 Results & Insights
+The current production pipeline keeps the original project intent and slightly improves feature engineering.
 
-* XGBoost outperformed Logistic Regression in capturing complex patterns
-* Logistic Regression provided strong baseline interpretability
-* SHAP analysis aligned well with financial intuition
-* MLflow enabled clean comparison across multiple experiments
+Models:
 
----
+- Logistic Regression for interpretable baseline performance
+- XGBoost for stronger non-linear predictive power
 
-## 🎯 Use Cases
+Engineered features:
 
-* Bank loan approval systems
-* FinTech credit scoring
-* Risk analysis dashboards
-* Educational ML & MLOps demonstrations
+- Payment-to-income ratio
+- Loan amount to income ratio
+- Credit utilization tier
+- Loan term bucket
+- Credit score band
+- Parsed employment length
 
----
+## Setup
 
-## 📌 Future Improvements
+Create a virtual environment on CachyOS or any other Linux distro:
 
-* Add real-time inference API (FastAPI/Flask)
-* Integrate drift detection
-* Expand dataset with temporal credit history
-* Deploy models with CI/CD pipelines
+```bash
+python -m venv .venv
+source .venv/bin/activate
+pip install --upgrade pip
+pip install -e ".[dev]"
+```
 
----
+Place your dataset at:
 
-## 👤 Author
+```text
+data/raw/accepted_2007_to_2018Q4.csv.gz
+```
 
-**Prajwal JB**
-B.E. Artificial Intelligence & Data Science
-BMS College of Engineering, Bengaluru
+If your file lives elsewhere, update [`configs/base.yaml`](/home/razerfang/Code/RiskSense/configs/base.yaml).
 
----
+## Run Training
 
-⭐ If you find this project useful, consider starring it!
+```bash
+python scripts/train.py --config configs/base.yaml --params params.yaml
+```
+
+Or with `make`:
+
+```bash
+make train
+```
+
+Artifacts produced by training:
+
+- best model in `models/`
+- metrics JSON in `reports/`
+- summary metrics JSON in `reports/`
+- model comparison CSV in `reports/`
+- sample predictions CSV in `reports/`
+- confusion matrix plots in `reports/`
+- SHAP summary plot for XGBoost in `reports/`
+- MLflow metadata in `mlflow.db`
+
+## Run Batch Prediction
+
+```bash
+python scripts/predict.py --model-path models/best_model.joblib --input-csv data/processed/inference_input.csv --output-csv reports/predictions.csv
+```
+
+## MLflow
+
+Launch the experiment UI locally:
+
+```bash
+mlflow ui --backend-store-uri sqlite:///mlflow.db
+```
+
+Then open `http://127.0.0.1:5000`.
+
+## DVC
+
+This project now includes a real DVC pipeline stage for training. DVC is used here for:
+
+- pipeline reproducibility
+- parameter tracking
+- experiment comparison with `dvc exp`
+- metrics tracking through `reports/summary_metrics.json`
+
+Key files:
+
+- [`dvc.yaml`](/home/razerfang/Code/RiskSense/dvc.yaml)
+- [`params.yaml`](/home/razerfang/Code/RiskSense/params.yaml)
+- [`configs/base.yaml`](/home/razerfang/Code/RiskSense/configs/base.yaml)
+
+Run the DVC pipeline:
+
+```bash
+dvc repro
+```
+
+Run a DVC experiment:
+
+```bash
+dvc exp run
+```
+
+Show tracked metrics:
+
+```bash
+dvc metrics show
+```
+
+Example experiment override:
+
+```bash
+dvc exp run -S data.sample_frac=0.1 -S explainability.sample_size=50
+```
+
+Important:
+
+- put your dataset at `data/raw/accepted_2007_to_2018Q4.csv.gz`
+- DVC stage execution uses `params.yaml` as the experiment override layer and merges it into [`configs/base.yaml`](/home/razerfang/Code/RiskSense/configs/base.yaml)
+- once the raw dataset is present, you can additionally run `dvc add data/raw/accepted_2007_to_2018Q4.csv.gz` if you want full data versioning through the DVC cache
+
+## Quality Tooling
+
+Lint:
+
+```bash
+ruff check .
+```
+
+Format:
+
+```bash
+ruff format .
+```
+
+Test:
+
+```bash
+pytest
+```
+
+Install git hooks:
+
+```bash
+pre-commit install
+```
+
+## Legacy Notebook
+
+[`credit_risk_system.ipynb`](/home/razerfang/Code/RiskSense/credit_risk_system.ipynb) is kept as the original exploratory notebook. The production path is now:
+
+- [`scripts/train.py`](/home/razerfang/Code/RiskSense/scripts/train.py)
+- [`scripts/predict.py`](/home/razerfang/Code/RiskSense/scripts/predict.py)
+- [`src/risksense/pipeline.py`](/home/razerfang/Code/RiskSense/src/risksense/pipeline.py)
+
+## Next MLOps Upgrades
+
+- Add data validation with Great Expectations
+- Add a model serving API with FastAPI
+- Add model registry promotion rules in MLflow
+- Add drift and data quality monitoring
+- Add Docker-based deployment and scheduled retraining

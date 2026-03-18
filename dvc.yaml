@@ -1,0 +1,48 @@
+stages:
+  train:
+    cmd: MPLCONFIGDIR=.cache/matplotlib ./.venv/bin/python scripts/train.py --config configs/base.yaml --params params.yaml
+    deps:
+      - configs/base.yaml
+      - params.yaml
+      - scripts/train.py
+      - src/risksense/config.py
+      - src/risksense/data.py
+      - src/risksense/evaluation.py
+      - src/risksense/explainability.py
+      - src/risksense/features.py
+      - src/risksense/models.py
+      - src/risksense/pipeline.py
+      - src/risksense/tracking.py
+      - data/raw/accepted_2007_to_2018Q4.csv.gz
+    params:
+      - params.yaml:
+          - data.sample_frac
+          - data.test_size
+          - data.random_state
+          - model.cv_folds
+          - model.scoring
+          - model.logistic_regression_grid.classifier__C
+          - model.xgboost_grid.classifier__max_depth
+          - model.xgboost_grid.classifier__learning_rate
+          - model.xgboost_grid.classifier__n_estimators
+          - explainability.enabled
+          - explainability.sample_size
+      - configs/base.yaml:
+          - tracking.experiment_name
+          - tracking.tracking_uri
+          - data.raw_data_path
+    metrics:
+      - reports/summary_metrics.json
+    plots:
+      - reports/model_comparison.csv:
+          x: model
+          y: roc_auc
+    outs:
+      - models/best_model.joblib
+      - reports/metrics.json
+      - reports/model_comparison.csv
+      - reports/sample_predictions.csv
+      - reports/summary_metrics.json
+      - reports/logistic_regression_confusion_matrix.png
+      - reports/xgboost_confusion_matrix.png
+      - reports/xgboost_shap_summary.png

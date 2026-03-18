@@ -1,0 +1,49 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "risksense"
+version = "0.1.0"
+description = "Production-style credit risk assessment project with MLOps tooling."
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+  "joblib>=1.4",
+  "matplotlib>=3.9",
+  "mlflow>=2.20",
+  "numpy>=2.2",
+  "pandas>=2.2",
+  "pyyaml>=6.0",
+  "scikit-learn>=1.6",
+  "seaborn>=0.13",
+  "shap>=0.47",
+  "xgboost>=2.1",
+]
+
+[project.optional-dependencies]
+dev = [
+  "dvc>=3.67",
+  "ipykernel>=6.29",
+  "pre-commit>=4.1",
+  "pytest>=8.3",
+  "ruff>=0.11",
+]
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 88
+target-version = "py311"
+extend-exclude = ["credit_risk_system.ipynb"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B"]
